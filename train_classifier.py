@@ -2,6 +2,8 @@ import argparse
 import time
 import yaml
 from utils import *
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from EarlyStopping import EarlyStopping
 
 
 def train(config, seed):
@@ -12,8 +14,8 @@ def train(config, seed):
     :return: nn.module: model
     '''
     # Set seeds to make test reproducible
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    #torch.manual_seed(seed)
+    #np.random.seed(seed)
 
     device = torch.device(config['device'])
 
@@ -26,6 +28,14 @@ def train(config, seed):
 
     optimizer = select_optimizer(config, model)
     loss_module = nn.CrossEntropyLoss()
+    scheduler = ReduceLROnPlateau(optimizer,
+                                  mode='max',
+                                  factor=0.1,
+                                  min_lr=1e-6,
+                                  patience=3)
+
+    early_stopping = EarlyStopping(patience=10,
+                                   delta=0.001)
 
     # Record current time to record training time
     start_time = time.time()
@@ -77,6 +87,12 @@ def train(config, seed):
             accuracy = total_correct / total_comparisons
             print("[Test Epoch %d/%d] [test accuracy: %f, train accuracy: %f]" % (epoch + 1, config['epochs'], accuracy, train_accuracy/batch_count))
 
+        scheduler.step(accuracy)
+        early_stopping(accuracy, model)
+        if early_stopping.early_stop:
+            print(f"Early stopping triggered at epoch {epoch + 1}")
+            break
+
         train_accuracy = 0
 
     torch.save(model.state_dict(), config['save_dir'] + config['model_name'])
@@ -87,10 +103,10 @@ def train(config, seed):
 if __name__ == "__main__":
     # Create parser to get hyperparameters from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='config/mnist_3_8.yml')
+    parser.add_argument('--config', default='config/diabetes.yml')
     args = parser.parse_args()
 
-    config = yaml.load(open(args.config, "r"))
+    config = yaml.safe_load(open(args.config, "r"))
     config = to_classifier_config(config)
     print(config)
     train(config, 1)

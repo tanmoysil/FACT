@@ -4,10 +4,13 @@
 import os
 import random
 import torch
-from torch.utils.data import Subset
+from torch.utils.data import Subset, TensorDataset
 from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import MNIST, FashionMNIST, CIFAR10
 from torchvision.transforms import transforms
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 from typing import Any, Callable, Dict, IO, List, Optional, Tuple, Union
 from PIL import Image
@@ -113,13 +116,44 @@ def get_cifar10_dataloaders(root='./datasets/', batch_size=64, digits_to_include
 
     return train_dataloader, test_dataloader
 
+def get_diabetes_dataloaders(root='./datasets/', batch_size=64, digits_to_include: list = None):
+    """
+       Loads the custom diabetes dataset into a dataloader
+       :param root: dir of the dataset
+       :param batch_size: size of batch
+       :return: DataLoader: train_dataloader, DataLoader: test_dataloader.
+    """
+
+    path = os.path.join(root, "diabetes", "diabetes_binary_health_indicators_BRFSS2015.csv")
+    df1 = pd.read_csv(path)
+    df1.drop_duplicates(inplace=True)
+
+    X = (df1.iloc[:, 1:]).to_numpy()
+    y = (df1.iloc[:, 0]).to_numpy()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    train_dataset = TensorDataset(torch.from_numpy(X_train).float(),
+                                  torch.from_numpy(y_train).long())
+    test_dataset = TensorDataset(torch.from_numpy(X_test).float(),
+                                torch.from_numpy(y_test).long())
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+    return train_dataloader, test_dataloader
+
 
 def get_indices(dataset):
-    '''
+    """
     Returns indices of datapoint that have a non-negative label.
     :param dataset: dataset to get indices from
     :return: list: indices
-    '''
+    """
     indices = []
     for i, (x, y) in enumerate(dataset):
         if y != -1:

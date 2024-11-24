@@ -22,6 +22,9 @@ def select_dataloader(config):
     elif config["dataset"] == "cifar10":
         return dataset.get_cifar10_dataloaders(batch_size=config["batch_size"], digits_to_include=config['include_classes'])
 
+    elif config["dataset"] == "diabetes":
+        return dataset.get_diabetes_dataloaders(batch_size=config["batch_size"], digits_to_include=config['include_classes'])
+
     else:
         raise Exception("No valid dataset selected!")
 
@@ -46,6 +49,11 @@ def select_classifier(config):
 
     elif config['classifier'] == 'dummy':
         return models_classifiers.DummyClassifier()
+
+    elif config['classifier'] == 'linClassifier':
+        input_dim = config['n_features']
+        #output_dim = 2
+        return models_classifiers.linClassifier(input_dim, output_dim)
 
     else:
         raise Exception("No valid model selected!")
@@ -84,6 +92,9 @@ def select_vae_model(config):
     elif config["vae_model"] == "cifar10_cvae":
         encoder = models_vae.Encoder_cifar(config['z_dim'], 3, config["image_size"] ** 2)
         decoder = models_vae.Decoder_cifar(config['z_dim'], 3, config["image_size"] ** 2)
+    elif config["vae_model"] == "vanilla_Encoder":
+        encoder = models_vae.vEncoder(config['n_features'], config['z_dim'])
+        decoder = models_vae.vDecoder(config['n_features'], config['z_dim'])
     else:
         raise Exception("No valid encoder/decoder selected!")
 
@@ -113,7 +124,11 @@ def save_model(model, path):
 def prepare_variables_pl(config):
     # The device to run the model on
     z_dim = config['n_alpha'] + config['n_beta']
-    x_dim = config['image_size'] ** 2
+    if config['vae_model'] != "vanilla_Encoder" :
+        x_dim = config['image_size'] ** 2
+    else:
+        x_dim = config['n_features']
+
 
     if config['include_classes'] is None:
         n_classes = 10

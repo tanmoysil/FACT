@@ -120,3 +120,35 @@ class VGG11(nn.Module):
         x = self.classifier(x)
         x_prob = torch.softmax(x, dim=-1)
         return x, x_prob
+
+
+class linClassifier(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(linClassifier, self).__init__()
+
+        self.hidden_dim1 = 128
+
+        self.model = nn.Sequential(
+
+            nn.Linear(in_features=input_dim, out_features=self.hidden_dim1),
+            # #nn.BatchNorm1d(hidden_dim1),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
+
+            # nn.Linear(in_features=hidden_dim1, out_features=hidden_dim2),
+            # nn.BatchNorm1d(hidden_dim2),
+            # nn.ReLU(),
+            # nn.Dropout(p=0.3),
+
+            # nn.Linear(in_features=hidden_dim2, out_features=hidden_dim3),
+            # nn.BatchNorm1d(hidden_dim3),
+            # nn.ReLU(),
+            # nn.Dropout(p=0.3),
+
+            nn.Linear(in_features=self.hidden_dim1, out_features=output_dim),
+        )
+
+    def forward(self, x):
+        out = self.model(x)
+        out_probs = torch.sigmoid(out)
+        return out, out_probs

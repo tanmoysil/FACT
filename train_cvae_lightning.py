@@ -83,7 +83,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', default='config/mnist_3_8.yml')
 
     args = parser.parse_args()
-    config = yaml.load(open(args.config, "r"))
+    config = yaml.safe_load(open(args.config, "r"))
     config = to_vae_config(config)
     print(config)
 
