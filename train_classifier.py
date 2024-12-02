@@ -34,8 +34,8 @@ def train(config, seed):
                                   min_lr=1e-6,
                                   patience=3)
 
-    early_stopping = EarlyStopping(patience=10,
-                                   delta=0.001)
+    early_stopping = EarlyStopping(patience=20,
+                                   delta=0.0001)
 
     # Record current time to record training time
     start_time = time.time()
@@ -103,7 +103,7 @@ def train(config, seed):
 if __name__ == "__main__":
     # Create parser to get hyperparameters from user
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='config/diabetes.yml')
+    parser.add_argument('--config', default='config/pd.yml')
     args = parser.parse_args()
 
     config = yaml.safe_load(open(args.config, "r"))

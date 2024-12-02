@@ -126,7 +126,9 @@ class linClassifier(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(linClassifier, self).__init__()
 
-        self.hidden_dim1 = 128
+        self.hidden_dim1 = 256
+        self.hidden_dim2 = 128
+        self.hidden_dim3 = 64
 
         self.model = nn.Sequential(
 
@@ -135,17 +137,17 @@ class linClassifier(nn.Module):
             nn.ReLU(),
             nn.Dropout(p=0.3),
 
-            # nn.Linear(in_features=hidden_dim1, out_features=hidden_dim2),
-            # nn.BatchNorm1d(hidden_dim2),
-            # nn.ReLU(),
-            # nn.Dropout(p=0.3),
+            nn.Linear(in_features=self.hidden_dim1, out_features=self.hidden_dim2),
+            #nn.BatchNorm1d(self.hidden_dim2),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
 
-            # nn.Linear(in_features=hidden_dim2, out_features=hidden_dim3),
-            # nn.BatchNorm1d(hidden_dim3),
-            # nn.ReLU(),
-            # nn.Dropout(p=0.3),
+            nn.Linear(in_features=self.hidden_dim2, out_features=self.hidden_dim3),
+            #nn.BatchNorm1d(self.hidden_dim3),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
 
-            nn.Linear(in_features=self.hidden_dim1, out_features=output_dim),
+            nn.Linear(in_features=self.hidden_dim3, out_features=output_dim),
         )
 
     def forward(self, x):

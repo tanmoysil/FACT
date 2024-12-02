@@ -25,6 +25,9 @@ def select_dataloader(config):
     elif config["dataset"] == "diabetes":
         return dataset.get_diabetes_dataloaders(batch_size=config["batch_size"], digits_to_include=config['include_classes'])
 
+    elif config["dataset"] == "pd":
+        return dataset.get_pd_dataloaders(batch_size=config["batch_size"], digits_to_include=config['include_classes'])
+
     else:
         raise Exception("No valid dataset selected!")
 

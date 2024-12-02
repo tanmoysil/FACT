@@ -11,6 +11,7 @@ from torchvision.transforms import transforms
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from scipy.io import loadmat
 
 from typing import Any, Callable, Dict, IO, List, Optional, Tuple, Union
 from PIL import Image
@@ -116,6 +117,7 @@ def get_cifar10_dataloaders(root='./datasets/', batch_size=64, digits_to_include
 
     return train_dataloader, test_dataloader
 
+
 def get_diabetes_dataloaders(root='./datasets/', batch_size=64, digits_to_include: list = None):
     """
        Loads the custom diabetes dataset into a dataloader
@@ -147,6 +149,36 @@ def get_diabetes_dataloaders(root='./datasets/', batch_size=64, digits_to_includ
 
     return train_dataloader, test_dataloader
 
+
+def get_pd_dataloaders(root='./datasets/', batch_size=32, digits_to_include: list = None):
+    """
+       Loads the custom diabetes dataset into a dataloader
+       :param root: dir of the dataset
+       :param batch_size: size of batch
+       :return: DataLoader: train_dataloader, DataLoader: test_dataloader.
+    """
+
+    path = os.path.join(root, "pd", "X_y_10.mat")
+    mat_file = loadmat(path)
+    X, y = mat_file['X_cleaned'], mat_file['y_cleaned']
+    y = y.ravel()
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    train_dataset = TensorDataset(torch.from_numpy(X_train).float(),
+                                  torch.from_numpy(y_train).long())
+    test_dataset = TensorDataset(torch.from_numpy(X_test).float(),
+                                torch.from_numpy(y_test).long())
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+    return train_dataloader, test_dataloader
 
 def get_indices(dataset):
     """
